@@ -4,10 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final mortgage = Mortgage();
+  await mortgage.loadMortgage();
+
   runApp(
     ChangeNotifierProvider(
-      create: (context) => Mortgage(),
+      create: (context) => mortgage,
       child: const MortgageApp(),
     ),
   );
@@ -141,6 +145,13 @@ class Mortgage extends ChangeNotifier {
     await prefs.setDouble('mortgageAmount', _amount);
     await prefs.setInt('mortgageYears', _years);
     await prefs.setDouble('mortgageRate', _rate);
+  }
+
+  Future<void> loadMortgage() async {
+    final prefs = await SharedPreferences.getInstance();
+    setAmount(prefs.getDouble('mortgageAmount') ?? 100000);
+    setYears(prefs.getInt('mortgageYears') ?? 30);
+    setRate(prefs.getDouble('mortgageRate') ?? 0.035);
   }
 
   void setAmount(double newAmount) {
