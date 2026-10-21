@@ -32,24 +32,19 @@ class MortgageScreen extends StatefulWidget {
 }
 
 class _MortgageScreenState extends State<MortgageScreen> {
-  Mortgage mortgage = Mortgage();
   bool termsAccepted = false;
 
-  void modifyMortgage() async {
-    Mortgage? updatedMortgage = await Navigator.push<Mortgage>(
+  void modifyMortgage() {
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ModifyScreen(mortgage: mortgage)),
+      MaterialPageRoute(builder: (context) => const ModifyScreen()),
     );
-
-    if (updatedMortgage != null) {
-      setState(() {
-        mortgage = updatedMortgage;
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final mortgage = context.watch<Mortgage>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Mortgage Calculator')),
       body: Padding(
@@ -171,9 +166,7 @@ class Mortgage extends ChangeNotifier {
 }
 
 class ModifyScreen extends StatefulWidget {
-  const ModifyScreen({super.key, required this.mortgage});
-
-  final Mortgage mortgage;
+  const ModifyScreen({super.key});
 
   @override
   State<ModifyScreen> createState() => _ModifyScreenState();
@@ -190,17 +183,18 @@ class _ModifyScreenState extends State<ModifyScreen> {
   void initState() {
     super.initState();
 
-    amountController.text = widget.mortgage.amount.toString();
+    final mortgage = context.read<Mortgage>();
+    amountController.text = mortgage.amount.toString();
 
-    if ([10, 15, 30].contains(widget.mortgage.years)) {
-      selectedYears = widget.mortgage.years;
+    if ([10, 15, 30].contains(mortgage.years)) {
+      selectedYears = mortgage.years;
     }
 
     for (int index = 0; index <= 52; index++) {
       rates.add(0.02 + (index * 0.0025));
     }
 
-    selectedRateIndex = ((widget.mortgage.rate - 0.02) / 0.0025).round();
+    selectedRateIndex = ((mortgage.rate - 0.02) / 0.0025).round();
     selectedRate = rates[selectedRateIndex];
   }
 
@@ -273,22 +267,21 @@ class _ModifyScreenState extends State<ModifyScreen> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
+                final mortgage = context.read<Mortgage>();
                 double amount =
                     double.tryParse(amountController.text) ??
-                    widget.mortgage.amount;
+                    mortgage.amount;
 
                 if (amount < 0) {
-                  amount = widget.mortgage.amount;
+                  amount = mortgage.amount;
                 }
 
-                Navigator.pop(
-                  context,
-                  Mortgage(
-                    amount: amount,
-                    years: selectedYears,
-                    rate: selectedRate,
-                  ),
+                mortgage.updateMortgage(
+                  amount: amount,
+                  years: selectedYears,
+                  rate: selectedRate,
                 );
+                Navigator.pop(context);
               },
               child: const Text('DONE'),
             ),
