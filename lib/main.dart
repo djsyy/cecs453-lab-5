@@ -1,9 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MortgageApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Mortgage(),
+      child: const MortgageApp(),
+    ),
+  );
 }
 
 class MortgageApp extends StatelessWidget {
@@ -107,7 +113,7 @@ class _MortgageScreenState extends State<MortgageScreen> {
   }
 }
 
-class Mortgage {
+class Mortgage extends ChangeNotifier {
   double _amount = 100000;
   int _years = 30;
   double _rate = 0.035;
@@ -122,6 +128,17 @@ class Mortgage {
   double get amount => _amount;
   int get years => _years;
   double get rate => _rate;
+
+  void updateMortgage({
+    required double amount,
+    required int years,
+    required double rate,
+  }) {
+    setAmount(amount);
+    setYears(years);
+    setRate(rate);
+    notifyListeners();
+  }
 
   void setAmount(double newAmount) {
     if (newAmount >= 0) {
