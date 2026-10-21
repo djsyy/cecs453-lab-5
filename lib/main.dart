@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(
@@ -135,6 +136,13 @@ class Mortgage extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> saveMortgage() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('mortgageAmount', _amount);
+    await prefs.setInt('mortgageYears', _years);
+    await prefs.setDouble('mortgageRate', _rate);
+  }
+
   void setAmount(double newAmount) {
     if (newAmount >= 0) {
       _amount = newAmount;
@@ -266,7 +274,7 @@ class _ModifyScreenState extends State<ModifyScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final mortgage = context.read<Mortgage>();
                 double amount =
                     double.tryParse(amountController.text) ??
@@ -281,6 +289,8 @@ class _ModifyScreenState extends State<ModifyScreen> {
                   years: selectedYears,
                   rate: selectedRate,
                 );
+                await mortgage.saveMortgage();
+                if (!context.mounted) return;
                 Navigator.pop(context);
               },
               child: const Text('DONE'),
